@@ -14,6 +14,8 @@
 
 #define POSIX	    /* Used by pty.c */
 
+/* This is only a test */
+
 #if defined(FEAT_GUI_PHOTON)
 extern int is_photon_available;
 #endif
