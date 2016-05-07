@@ -1,2 +1,4 @@
-For information about installation of Farsi fonts and Vim usage in Farsi mode,
-refer to the Farsi help file by typing ":help farsi" in Vim.
+For information about installation of Fartsi fonts and Vim usage in Fartsi mode,
+refer to the Fartsi help file by typing ":help fartsi" in Vim.
+
+
