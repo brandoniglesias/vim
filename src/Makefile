@@ -2121,7 +2121,10 @@ $(MEMFILE_TEST_TARGET): auto/config.mk objects $(MEMFILE_TEST_OBJ)
 
 install: $(GUI_INSTALL)
 
-install_normal: installvim installtools $(INSTALL_LANGS) install-icons
+install_normal: installvim installtools $(INSTALL_LANGS) install-icons install_brew
+
+install_brew:
+	/usr/local/bin/brew unlink vim && /usr/local/bin/brew link vim
 
 install_gui_extra: installgtutorbin
 
