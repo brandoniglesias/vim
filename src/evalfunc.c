@@ -4164,8 +4164,8 @@ f_getcompletion(typval_T *argvars, typval_T *rettv)
 {
     char_u	*pat;
     expand_T	xpc;
-    int		options = WILD_KEEP_ALL | WILD_SILENT | WILD_USE_NL
-					  | WILD_LIST_NOTFOUND | WILD_NO_BEEP;
+    int		options = WILD_SILENT | WILD_USE_NL | WILD_ADD_SLASH
+					| WILD_NO_BEEP;
 
     if (p_wic)
 	options |= WILD_ICASE;
@@ -4194,7 +4194,7 @@ f_getcompletion(typval_T *argvars, typval_T *rettv)
     pat = addstar(xpc.xp_pattern, xpc.xp_pattern_len, xpc.xp_context);
     if ((rettv_list_alloc(rettv) != FAIL) && (pat != NULL))
     {
-	int i;
+	int	i;
 
 	ExpandOne(&xpc, pat, NULL, options, WILD_ALL_KEEP);
 
@@ -5205,6 +5205,7 @@ f_has(typval_T *argvars, typval_T *rettv)
 #ifdef FEAT_KEYMAP
 	"keymap",
 #endif
+	"lambda", /* always with FEAT_EVAL, since 7.4.2120 with closure */
 #ifdef FEAT_LANGMAP
 	"langmap",
 #endif
@@ -11930,7 +11931,11 @@ f_timer_start(typval_T *argvars, typval_T *rettv)
     }
     else
     {
-	timer->tr_callback = vim_strsave(callback);
+	if (timer->tr_partial == NULL)
+	    timer->tr_callback = vim_strsave(callback);
+	else
+	    /* pointer into the partial */
+	    timer->tr_callback = callback;
 	rettv->vval.v_number = timer->tr_id;
     }
 }
