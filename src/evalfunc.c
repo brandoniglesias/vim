@@ -3291,10 +3291,10 @@ f_float2nr(typval_T *argvars, typval_T *rettv)
     if (get_float_arg(argvars, &f) == OK)
     {
 # ifdef FEAT_NUM64
-	if (f < -0x7fffffffffffffff)
-	    rettv->vval.v_number = -0x7fffffffffffffff;
-	else if (f > 0x7fffffffffffffff)
-	    rettv->vval.v_number = 0x7fffffffffffffff;
+	if (f < -0x7fffffffffffffffLL)
+	    rettv->vval.v_number = -0x7fffffffffffffffLL;
+	else if (f > 0x7fffffffffffffffLL)
+	    rettv->vval.v_number = 0x7fffffffffffffffLL;
 	else
 	    rettv->vval.v_number = (varnumber_T)f;
 # else
@@ -3931,7 +3931,7 @@ get_buffer_info(buf_T *buf)
     if (dict == NULL)
 	return NULL;
 
-    dict_add_nr_str(dict, "nr", buf->b_fnum, NULL);
+    dict_add_nr_str(dict, "bufnr", buf->b_fnum, NULL);
     dict_add_nr_str(dict, "name", 0L,
 	    buf->b_ffname != NULL ? buf->b_ffname : (char_u *)"");
     dict_add_nr_str(dict, "lnum", buflist_findlnum(buf), NULL);
@@ -5001,7 +5001,7 @@ get_tabpage_info(tabpage_T *tp, int tp_idx)
     if (dict == NULL)
 	return NULL;
 
-    dict_add_nr_str(dict, "nr", tp_idx, NULL);
+    dict_add_nr_str(dict, "tabnr", tp_idx, NULL);
 
     l = list_alloc();
     if (l != NULL)
@@ -5125,12 +5125,12 @@ get_win_info(win_T *wp, short tpnr, short winnr)
     if (dict == NULL)
 	return NULL;
 
-    dict_add_nr_str(dict, "tpnr", tpnr, NULL);
-    dict_add_nr_str(dict, "nr", winnr, NULL);
+    dict_add_nr_str(dict, "tabnr", tpnr, NULL);
+    dict_add_nr_str(dict, "winnr", winnr, NULL);
     dict_add_nr_str(dict, "winid", wp->w_id, NULL);
     dict_add_nr_str(dict, "height", wp->w_height, NULL);
     dict_add_nr_str(dict, "width", wp->w_width, NULL);
-    dict_add_nr_str(dict, "bufnum", wp->w_buffer->b_fnum, NULL);
+    dict_add_nr_str(dict, "bufnr", wp->w_buffer->b_fnum, NULL);
 
 #ifdef FEAT_QUICKFIX
     dict_add_nr_str(dict, "quickfix", bt_quickfix(wp->w_buffer), NULL);
@@ -11166,7 +11166,7 @@ f_strgetchar(typval_T *argvars, typval_T *rettv)
 		break;
 	    }
 	    --charidx;
-	    byteidx += mb_cptr2len(str + byteidx);
+	    byteidx += MB_CPTR2LEN(str + byteidx);
 	}
     }
 #else
@@ -11326,7 +11326,7 @@ f_strcharpart(typval_T *argvars, typval_T *rettv)
 	if (nchar > 0)
 	    while (nchar > 0 && nbyte < slen)
 	    {
-		nbyte += mb_cptr2len(p + nbyte);
+		nbyte += MB_CPTR2LEN(p + nbyte);
 		--nchar;
 	    }
 	else
@@ -11341,7 +11341,7 @@ f_strcharpart(typval_T *argvars, typval_T *rettv)
 		if (off < 0)
 		    len += 1;
 		else
-		    len += mb_cptr2len(p + off);
+		    len += MB_CPTR2LEN(p + off);
 		--charlen;
 	    }
 	}
