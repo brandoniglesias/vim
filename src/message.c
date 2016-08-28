@@ -12,6 +12,7 @@
  */
 
 #define MESSAGE_FILE		/* don't include prototype for smsg() */
+#define USING_FLOAT_STUFF
 
 #include "vim.h"
 
@@ -2161,8 +2162,12 @@ msg_puts_display(
     int
 message_filtered(char_u *msg)
 {
-    return cmdmod.filter_regmatch.regprog != NULL
-		     && !vim_regexec(&cmdmod.filter_regmatch, msg, (colnr_T)0);
+    int match;
+
+    if (cmdmod.filter_regmatch.regprog == NULL)
+	return FALSE;
+    match = vim_regexec(&cmdmod.filter_regmatch, msg, (colnr_T)0);
+    return cmdmod.filter_force ? match : !match;
 }
 
 /*
@@ -3985,6 +3990,30 @@ tv_float(typval_T *tvs, int *idxp)
 # endif
 #endif
 
+#ifdef FEAT_FLOAT
+/*
+ * Return the representation of infinity for printf() function:
+ * "-inf", "inf", "+inf", " inf", "-INF", "INF", "+INF" or " INF".
+ */
+    static const char *
+infinity_str(int positive,
+	     char fmt_spec,
+	     int force_sign,
+	     int space_for_positive)
+{
+    static const char *table[] =
+    {
+	"-inf", "inf", "+inf", " inf",
+	"-INF", "INF", "+INF", " INF"
+    };
+    int idx = positive * (1 + force_sign + force_sign * space_for_positive);
+
+    if (ASCII_ISUPPER(fmt_spec))
+	idx += 4;
+    return table[idx];
+}
+#endif
+
 /*
  * This code was included to provide a portable vsnprintf() and snprintf().
  * Some systems may provide their own, but we always use this one for
@@ -4003,8 +4032,8 @@ tv_float(typval_T *tvs, int *idxp)
  *
  * Limited support for floating point was added: 'f', 'e', 'E', 'g', 'G'.
  *
- * Length modifiers 'h' (short int) and 'l' (long int) are supported.
- * 'll' (long long int) is not supported.
+ * Length modifiers 'h' (short int) and 'l' (long int) and 'll' (long long int)
+ * are supported.
  *
  * The locale is not used, the string is used as a byte string.  This is only
  * relevant for double-byte encodings where the second byte may be '%'.
@@ -4392,7 +4421,7 @@ vim_vsnprintf(
 		    uvarnumber_T ullong_arg = 0;
 # endif
 
-		    /* only defined for b convertion */
+		    /* only defined for b conversion */
 		    uvarnumber_T bin_arg = 0;
 
 		    /* pointer argument value -only defined for p
@@ -4726,8 +4755,10 @@ vim_vsnprintf(
 			    )
 		    {
 			/* Avoid a buffer overflow */
-			strcpy(tmp, "inf");
-			str_arg_l = 3;
+			STRCPY(tmp, infinity_str(f > 0.0, fmt_spec,
+					      force_sign, space_for_positive));
+			str_arg_l = STRLEN(tmp);
+			zero_padding = 0;
 		    }
 		    else
 		    {
@@ -4747,7 +4778,25 @@ vim_vsnprintf(
 			}
 			format[l] = fmt_spec;
 			format[l + 1] = NUL;
-			str_arg_l = sprintf(tmp, format, f);
+
+			if (isnan(f))
+			{
+			    /* Not a number: nan or NAN */
+			    STRCPY(tmp, ASCII_ISUPPER(fmt_spec) ? "NAN"
+								      : "nan");
+			    str_arg_l = 3;
+			    zero_padding = 0;
+			}
+			else if (isinf(f))
+			{
+			    STRCPY(tmp, infinity_str(f > 0.0, fmt_spec,
+					      force_sign, space_for_positive));
+			    str_arg_l = STRLEN(tmp);
+			    zero_padding = 0;
+			}
+			else
+			    /* Regular float number */
+			    str_arg_l = sprintf(tmp, format, f);
 
 			if (remove_trailing_zeroes)
 			{

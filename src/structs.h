@@ -572,6 +572,7 @@ typedef struct
     char_u	*save_ei;		/* saved value of 'eventignore' */
 # endif
     regmatch_T	filter_regmatch;	/* set by :filter /pat/ */
+    int		filter_force;		/* set for :filter! */
 } cmdmod_T;
 
 #define MF_SEED_LEN	8
@@ -1126,8 +1127,13 @@ typedef long_u hash_T;		/* Type for hi_hash */
 #ifdef FEAT_NUM64
 /* Use 64-bit Number. */
 # ifdef WIN3264
+#  ifdef PROTO
+typedef long		    varnumber_T;
+typedef unsigned long	    uvarnumber_T;
+#  else
 typedef __int64		    varnumber_T;
 typedef unsigned __int64    uvarnumber_T;
+#  endif
 # elif defined(HAVE_STDINT_H)
 typedef int64_t		    varnumber_T;
 typedef uint64_t	    uvarnumber_T;

@@ -2165,7 +2165,7 @@ channel_exe_cmd(channel_T *channel, int part, typval_T *argv)
 		int id = argv[id_idx].vval.v_number;
 
 		if (tv != NULL)
-		    json = json_encode_nr_expr(id, tv, options);
+		    json = json_encode_nr_expr(id, tv, options | JSON_NL);
 		if (tv == NULL || (json != NULL && *json == NUL))
 		{
 		    /* If evaluation failed or the result can't be encoded
@@ -2175,7 +2175,7 @@ channel_exe_cmd(channel_T *channel, int part, typval_T *argv)
 		    err_tv.v_type = VAR_STRING;
 		    err_tv.vval.v_string = (char_u *)"ERROR";
 		    tv = &err_tv;
-		    json = json_encode_nr_expr(id, tv, options);
+		    json = json_encode_nr_expr(id, tv, options | JSON_NL);
 		}
 		if (json != NULL)
 		{
@@ -3456,7 +3456,7 @@ send_common(
 	    EMSG2(_("E917: Cannot use a callback with %s()"), fun);
 	    return NULL;
 	}
-	channel_set_req_callback(channel, part_send,
+	channel_set_req_callback(channel, *part_read,
 				       opt->jo_callback, opt->jo_partial, id);
     }
 
@@ -3500,7 +3500,7 @@ ch_expr_common(typval_T *argvars, typval_T *rettv, int eval)
 
     id = ++channel->ch_last_msg_id;
     text = json_encode_nr_expr(id, &argvars[1],
-					    ch_mode == MODE_JS ? JSON_JS : 0);
+				 (ch_mode == MODE_JS ? JSON_JS : 0) | JSON_NL);
     if (text == NULL)
 	return;
 

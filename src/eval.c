@@ -4941,12 +4941,9 @@ get_string_tv(char_u **arg, typval_T *rettv, int evaluate)
 
     }
     *name = NUL;
-    if (p == NUL)
-    {
-	EMSG2(_("E114: Missing quote: %s"), *arg);
-	return FAIL;
-    }
-    *arg = p + 1;
+    if (*p != NUL) /* just in case */
+	++p;
+    *arg = p;
 
     return OK;
 }
@@ -8473,9 +8470,23 @@ getwinvar(
 		  || switch_win(&oldcurwin, &oldtabpage, win, tp, TRUE) == OK)
 #endif
 	{
-	    if (*varname == '&')	/* window-local-option */
+	    if (*varname == '&')
 	    {
-		if (get_option_tv(&varname, rettv, 1) == OK)
+		if (varname[1] == NUL)
+		{
+		    /* get all window-local options in a dict */
+		    dict_T	*opts = get_winbuf_options(FALSE);
+
+		    if (opts != NULL)
+		    {
+			rettv->v_type = VAR_DICT;
+			rettv->vval.v_dict = opts;
+			++opts->dv_refcount;
+			done = TRUE;
+		    }
+		}
+		else if (get_option_tv(&varname, rettv, 1) == OK)
+		    /* window-local-option */
 		    done = TRUE;
 	    }
 	    else

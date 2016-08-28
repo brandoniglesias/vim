@@ -137,6 +137,8 @@ typedef int PSNSECINFO;
 typedef int PSNSECINFOW;
 typedef int STARTUPINFO;
 typedef int PROCESS_INFORMATION;
+typedef int LPSECURITY_ATTRIBUTES;
+# define __stdcall /* empty */
 #endif
 
 #ifndef FEAT_GUI_W32
@@ -2062,7 +2064,6 @@ mch_init(void)
     Columns = 80;
 
     /* Look for 'vimrun' */
-    if (!gui_is_win32s())
     {
 	char_u vimrun_location[_MAX_PATH + 4];
 
@@ -4142,7 +4143,7 @@ mch_system_classic(char *cmd, int options)
      * Win32s either as it stops the synchronous spawn workaround working.
      * Don't activate the window to keep focus on Vim.
      */
-    if ((options & SHELL_DOOUT) && !mch_windows95() && !gui_is_win32s())
+    if ((options & SHELL_DOOUT) && !mch_windows95())
 	si.wShowWindow = SW_SHOWMINNOACTIVE;
     else
 	si.wShowWindow = SW_SHOWNORMAL;
