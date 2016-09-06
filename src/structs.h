@@ -1845,8 +1845,8 @@ struct file_buffer
 
     int		b_flags;	/* various BF_ flags */
 #ifdef FEAT_AUTOCMD
-    int		b_closing;	/* buffer is being closed, don't let
-				   autocommands close it too. */
+    int		b_locked;	/* Buffer is being closed or referenced, don't
+				   let autocommands wipe it out. */
 #endif
 
     /*
@@ -3166,12 +3166,13 @@ typedef struct js_reader js_read_T;
 typedef struct timer_S timer_T;
 struct timer_S
 {
-    int		tr_id;
+    long	tr_id;
 #ifdef FEAT_TIMERS
     timer_T	*tr_next;
     timer_T	*tr_prev;
     proftime_T	tr_due;		    /* when the callback is to be invoked */
-    int		tr_paused;	    /* when TRUE callback is not invoked */
+    char	tr_firing;	    /* when TRUE callback is being called */
+    char	tr_paused;	    /* when TRUE callback is not invoked */
     int		tr_repeat;	    /* number of times to repeat, -1 forever */
     long	tr_interval;	    /* msec */
     char_u	*tr_callback;	    /* allocated */
