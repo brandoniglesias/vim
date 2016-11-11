@@ -1388,8 +1388,6 @@ do_cmdline(
 		    break;
 		case ET_INTERRUPT:
 		    break;
-		default:
-		    p = vim_strsave((char_u *)_(e_internal));
 	    }
 
 	    saved_sourcing_name = sourcing_name;
@@ -7488,9 +7486,9 @@ tabpage_close(int forceit)
 {
     /* First close all the windows but the current one.  If that worked then
      * close the last window in this tab, that will close it. */
-    if (lastwin != firstwin)
+    if (!ONE_WINDOW)
 	close_others(TRUE, forceit);
-    if (lastwin == firstwin)
+    if (ONE_WINDOW)
 	ex_win_close(forceit, curwin, NULL);
 # ifdef FEAT_GUI
     need_mouse_correct = TRUE;
